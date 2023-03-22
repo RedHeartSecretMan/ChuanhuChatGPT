@@ -19,6 +19,7 @@ import colorama
 from duckduckgo_search import ddg
 import datetime
 
+
 # logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s:%(lineno)d] %(message)s")
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ initial_prompt = "You are a helpful assistant."
 API_URL = "https://api.openai.com/v1/chat/completions"
 HISTORY_DIR = "history"
 TEMPLATES_DIR = "templates"
+
 
 def postprocess(
         self, y: List[Tuple[str | None, str | None]]
@@ -53,11 +55,13 @@ def postprocess(
             )
         return y
 
-def count_token(message):
+
+def count_token(messages):
     encoding = tiktoken.get_encoding("cl100k_base")
-    input_str = f"role: {message['role']}, content: {message['content']}"
+    input_str = "\n".join([f"role: {msg['role']}, content: {msg['content']}" for msg in [messages]])
     length = len(encoding.encode(input_str))
     return length
+
 
 def parse_text(text):
     lines = text.split("\n")
@@ -90,20 +94,26 @@ def parse_text(text):
     text = "".join(lines)
     return text
 
+
 def construct_text(role, text):
     return {"role": role, "content": text}
+
 
 def construct_user(text):
     return construct_text("user", text)
 
+
 def construct_system(text):
     return construct_text("system", text)
+
 
 def construct_assistant(text):
     return construct_text("assistant", text)
 
+
 def construct_token_message(token, stream=False):
     return f"Token 计数: {token}"
+
 
 def get_response(openai_api_key, system_prompt, history, temperature, top_p, stream, selected_model):
     headers = {
@@ -129,6 +139,7 @@ def get_response(openai_api_key, system_prompt, history, temperature, top_p, str
         timeout = timeout_all
     response = requests.post(API_URL, headers=headers, json=payload, stream=True, timeout=timeout)
     return response
+
 
 def stream_predict(openai_api_key, system_prompt, history, inputs, chatbot, all_token_counts, top_p, temperature, selected_model):
     def get_return_value():
@@ -362,8 +373,10 @@ def load_chat_history(filename, system, history, chatbot):
         logging.info("没有找到对话历史文件，不执行任何操作")
         return filename, system, history, chatbot
 
+
 def sorted_by_pinyin(list):
     return sorted(list, key=lambda char: lazy_pinyin(char)[0][0])
+
 
 def get_file_names(dir, plain=False, filetypes=[".json"]):
     logging.info(f"获取文件名列表，目录为{dir}，文件类型为{filetypes}，是否为纯文本列表{plain}")
@@ -381,9 +394,11 @@ def get_file_names(dir, plain=False, filetypes=[".json"]):
     else:
         return gr.Dropdown.update(choices=files)
 
+
 def get_history_names(plain=False):
     logging.info("获取历史记录文件名列表")
     return get_file_names(HISTORY_DIR, plain)
+
 
 def load_template(filename, mode=0):
     logging.info(f"加载模板文件{filename}，模式为{mode}（0为返回字典和下拉菜单，1为返回下拉菜单，2为返回字典）")
@@ -406,9 +421,11 @@ def load_template(filename, mode=0):
         choices = sorted_by_pinyin([row[0] for row in lines])
         return {row[0]:row[1] for row in lines}, gr.Dropdown.update(choices=choices, value=choices[0])
 
+
 def get_template_names(plain=False):
     logging.info("获取模板文件名列表")
     return get_file_names(TEMPLATES_DIR, plain, filetypes=[".csv", "json"])
+
 
 def get_template_content(templates, selection, original_system_prompt):
     logging.info(f"应用模板中，选择为{selection}，原始系统提示为{original_system_prompt}")
@@ -417,9 +434,11 @@ def get_template_content(templates, selection, original_system_prompt):
     except:
         return original_system_prompt
 
+
 def reset_state():
     logging.info("重置状态")
     return [], [], [], construct_token_message(0)
+
 
 def reset_textbox():
     return gr.update(value='')
