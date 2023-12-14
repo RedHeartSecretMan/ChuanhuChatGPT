@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 history/
+index/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -132,6 +133,23 @@ dmypy.json
 # Mac system file
 **/.DS_Store
 
-api_key.txt
+#vscode
+.vscode
 
+# 配置文件/模型文件
+api_key.txt
+config.json
 auth.json
+.models/
+models/*
+lora/
+.idea
+templates/*
+files/
+tmp/
+
+scripts/
+include/
+pyvenv.cfg
+
+create_release.sh
